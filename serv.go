@@ -64,8 +64,10 @@ func main() {
     log.Printf("done\n")
 
     bot.Messages = make(chan telebot.Message)
+    bot.Queries = make(chan telebot.Query)
 
     go processMessages()
+    go processQueries()
 
     log.Println("Starting bot")
     bot.Start(1 * time.Second)
@@ -90,5 +92,37 @@ func processMessages() {
             continue
         }
         bot.SendMessage(message.Chat, message.Text, nil)
+    }
+}
+
+func processQueries() {
+    for query := range bot.Queries {
+        log.Println("--- new query ---")
+        log.Println("from:", query.From.Username)
+        log.Println("text:", query.Text)
+
+        // Create an article (a link) object to show in our results.
+        article := &telebot.InlineQueryResultArticle{
+            Title: "Telegram bot framework written in Go",
+            URL:   "https://github.com/tucnak/telebot",
+            InputMessageContent: &telebot.InputTextMessageContent{
+                Text:           "Telebot is a convenient wrapper to Telegram Bots API, written in Golang.",
+                DisablePreview: false,
+            },
+        }
+
+        // Build the list of results. In this instance, just our 1 article from above.
+        results := []telebot.InlineQueryResult{article}
+
+        // Build a response object to answer the query.
+        response := telebot.QueryResponse{
+            Results:    results,
+            IsPersonal: true,
+        }
+
+        // And finally send the response.
+        if err := bot.AnswerInlineQuery(&query, &response); err != nil {
+            log.Println("Failed to respond to query:", err)
+        }
     }
 }
