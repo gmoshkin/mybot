@@ -14,6 +14,10 @@ var (
     ConfigDir        = os.Getenv("HOME") + "/.telebot"
     OwnerIdFileName  = ConfigDir + "/ownerid"
     ApiTokenFileName = ConfigDir + "/apitoken"
+    bot *telebot.Bot
+    ownerId int
+    apiToken string
+
 )
 
 func ReadConfig() (ownerId int, apiToken string) {
@@ -48,17 +52,27 @@ func main() {
             fmt.Fprintln(os.Stderr, msg)
         }
     } ()
-    ownerId, apiToken := ReadConfig()
+
+    ownerId, apiToken = ReadConfig()
+
+    var err error
     log.Printf("Setting up connection... ")
-    bot, err := telebot.NewBot(apiToken)
+    bot, err = telebot.NewBot(apiToken)
     if err != nil {
         return
     }
     log.Printf("done\n")
-    messages := make(chan telebot.Message)
+
+    bot.Messages = make(chan telebot.Message)
+
+    go processMessages()
+
     log.Println("Starting bot")
-    bot.Listen(messages, 1 * time.Second)
-    for message := range messages {
+    bot.Start(1 * time.Second)
+}
+
+func processMessages() {
+    for message := range bot.Messages {
         if message.Sender.ID != ownerId {
             log.Printf("Recieved a message from %s with text:\n%s\n",
                        message.Sender.Username, message.Text)
