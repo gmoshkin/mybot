@@ -6,6 +6,7 @@ import (
     "strconv"
     "time"
     "fmt"
+    "log"
     "os"
 )
 
@@ -16,6 +17,7 @@ var (
 )
 
 func ReadConfig() (ownerId int, apiToken string) {
+    log.Printf("Reading configs from %s... ", ConfigDir)
     ownerIdFile, err := os.Open(OwnerIdFileName)
     if err != nil {
         panic(fmt.Sprintf("Couldn't open file %s", OwnerIdFileName))
@@ -34,6 +36,7 @@ func ReadConfig() (ownerId int, apiToken string) {
     if n < 1 || err != nil {
         panic(fmt.Sprintf("Failed to read file %s:\n%s", ApiTokenFileName, err))
     }
+    log.Printf("done\n")
     return
 }
 
@@ -46,19 +49,26 @@ func main() {
         }
     } ()
     ownerId, apiToken := ReadConfig()
+    log.Printf("Setting up connection... ")
     bot, err := telebot.NewBot(apiToken)
     if err != nil {
         return
     }
+    log.Printf("done\n")
     messages := make(chan telebot.Message)
+    log.Println("Starting bot")
     bot.Listen(messages, 1 * time.Second)
     for message := range messages {
         if message.Sender.ID != ownerId {
+            log.Printf("Recieved a message from %s with text:\n%s\n",
+                       message.Sender.Username, message.Text)
             bot.SendMessage(message.Chat,
                             "Nothing to see here, move along!",
                             nil)
             continue
         }
+        log.Printf("Recieved a message from owner with text:\n\"%s\"\n",
+                   message.Text)
         if message.Text == "/id" {
             bot.SendMessage(message.Chat,
                             "your id is " + strconv.Itoa(message.Sender.ID),
