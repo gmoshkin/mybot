@@ -111,8 +111,17 @@ func processQueries() {
             },
         }
 
+        article2 := &telebot.InlineQueryResultArticle{
+            Title: time.Now().String(),
+            URL: "https://time.is",
+            InputMessageContent: &telebot.InputTextMessageContent{
+                Text: time.Now().String(),
+                DisablePreview: false,
+            },
+        }
+
         // Build the list of results. In this instance, just our 1 article from above.
-        results := []telebot.InlineQueryResult{article}
+        results := []telebot.InlineQueryResult{article, article2}
 
         // Build a response object to answer the query.
         response := telebot.QueryResponse{
