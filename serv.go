@@ -112,16 +112,24 @@ func processQueries() {
         }
 
         article2 := &telebot.InlineQueryResultArticle{
-            Title: time.Now().String(),
+            Title: getTime(),
             URL: "https://time.is",
             InputMessageContent: &telebot.InputTextMessageContent{
-                Text: time.Now().String(),
+                Text: getTime(),
+                DisablePreview: false,
+            },
+        }
+
+        article3 := &telebot.InlineQueryResultArticle{
+            Title: query.Text,
+            InputMessageContent: &telebot.InputTextMessageContent{
+                Text: query.Text,
                 DisablePreview: false,
             },
         }
 
         // Build the list of results. In this instance, just our 1 article from above.
-        results := []telebot.InlineQueryResult{article, article2}
+        results := []telebot.InlineQueryResult{article, article2, article3}
 
         // Build a response object to answer the query.
         response := telebot.QueryResponse{
@@ -134,4 +142,9 @@ func processQueries() {
             log.Println("Failed to respond to query:", err)
         }
     }
+}
+
+func getTime() (t string) {
+    t = time.Now().Format("Mon Jan 2 2006 15:04:05.000")
+    return
 }
